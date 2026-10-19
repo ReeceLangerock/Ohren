@@ -56,16 +56,11 @@ Stop a stray dev server with `pkill -f "vite --port 5173"`. A stale one on 5173 
 - Augmentation already applies room impulse responses (MIT RIRs), AudioSet background noise, colored noise, EQ, pitch shift and distortion to every training clip. Do not add reverb to recordings.
 - Possible extra data (not used, licenses unverified): SLR28 (RIRs), MUSAN (noise), added through `rir_paths` / `background_paths`. Common Voice / LibriSpeech would be for an M4 false-trigger test, not training.
 
-## NEXT: Ohren as a local always-on service (owner goals, 2026-10-19)
-- Run **in the background on the Mac** (not just a browser tab): a local service doing wake word, plus **TTS and STT**. Shell is open: Tauri, Electron, Capacitor, or gpui.
-- **Open source** Ohren as an easier way to create, train and save wake word models (a friendlier openWakeWord). The owner's own app will use the "prometheus" bundle.
-- Later: **Android only** (no iOS) and maybe **ESP32**; on ESP32 the TTS/STT is offloaded to another machine.
-- Constraints to carry in: the bundle manifest stays the only contract; the runtime must not import trainer code. Background listening needs a native process (a browser page loses the mic with the tab). 
-- **Starting points (from memory, NOT verified; check current docs first):**
-  - Mac background: a headless native process is the sturdy option (Rust with `ort` for ONNX Runtime and `cpal` for the mic, e.g. inside a Tauri tray app). Electron can reuse `runtime-web` as is in a hidden window but is heavy. gpui is young. Mic access needs a macOS permission prompt and a login item/launch agent for always-on.
-  - Android background: possible. Needs a foreground service with `foregroundServiceType="microphone"`, a persistent notification, the RECORD_AUDIO permission, and (Android 14+) the service must be started while the app is visible. A Capacitor WebView is suspended in the background, so run the model in a native Kotlin service (ONNX Runtime Android) that reads the same `.wakeword` bundle. Battery cost is real.
-  - ESP32: the mel+embedding+classifier pipeline is too big for a microcontroller. The usual route is microWakeWord (small streaming TFLite models, used by ESPHome), which is a different trainer and bundle, or streaming audio to the Mac. Decide whether Ohren supports a second, tiny model format.
-  - TTS/STT: not started. Pick local models (e.g. Piper is already used for training-clip TTS; Whisper-family for STT) and check Mac and license fit.
+## Native runtime and the Prometheus app (2026-10-19)
+- Ohren stays the generic toolkit. New: `runtime-native/` (Rust crate `ohren-runtime`): bundle reader, pipeline, detector, cpal mic loop (`listen`), CLI `ohren-listen <bundle> [threshold]`. `cargo test` includes a parity test against `runtime-web` (scores in `tests/golden.json`, dumped once from the TS runtime) and a prometheus-bundle smoke test (set `OHREN_CLIPS` to a dir of `say`-made clips). Uncommitted.
+- The owner's app lives in `~/git/Prometheus` (Tauri tray + window, local STT/TTS). See its `HANDOFF.md`. It works; wake word + Parakeet + Kokoro verified.
+- Verified vs the older "from memory" notes: Android microphone foreground services must be *created* while an activity is visible (not from boot or background); `ort` is still 2.0.0-rc.13; Piper is now GPL-3.0; Kokoro is Apache-2.0; Moonshine is MIT (non-English legacy models non-commercial).
+- Still open: Android (native service or the Rust core via JNI, plan in `~/.claude/plans/pasted-content-id-7ab1-docs-are-sparkling-hanrahan.md`), ESP32 (recommend streaming audio to the Mac; a second tiny model format only if a standalone device is wanted), repo license, README mention of `runtime-native/`.
 
 ## Optional later: real recordings and M4
 Only if the model proves weak in daily use.

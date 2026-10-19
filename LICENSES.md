@@ -4,6 +4,7 @@ Status: personal use only until the audit below is done. Not legal advice.
 
 | Item | License | Notes |
 |------|---------|-------|
+| Ohren code (this repo) | MIT | `LICENSE`. Does not cover `bundles/*.wakeword`, which are non-commercial (below). |
 | openWakeWord code | Apache 2.0 | Upstream repo, vendored/pinned in `trainer/third_party/` from M3. |
 | openWakeWord pretrained models (`hey_jarvis` etc.) | CC BY-NC-SA 4.0 | **Non-commercial, share-alike.** Used for `bundles/hey_jarvis.wakeword` and test fixtures only. |
 | `melspectrogram.onnx`, `embedding_model.onnx` | Unconfirmed | Embedding is derived from Google `speech_embedding` (Apache 2.0). Confirm the license of upstream's re-implemented files before any commercial use. |

@@ -2,7 +2,7 @@
 
 Train your own wake word on a laptop and run it anywhere. Ohren is a friendlier front end to [openWakeWord](https://github.com/dscripka/openWakeWord): one command turns a phrase into a small `.wakeword` file, and a runtime loads that file and listens.
 
-Status: early. Works on macOS (training) and in browsers (runtime). The repo has no license of its own yet, and trained bundles are non-commercial (see [LICENSES.md](LICENSES.md)).
+Status: early. Works on macOS (training) and in browsers (runtime). Code is MIT ([LICENSE](LICENSE)). Trained bundles in `bundles/` are not covered by it: they inherit upstream data terms and are non-commercial (see [LICENSES.md](LICENSES.md)).
 
 ## Parts
 | Dir | What it is |
@@ -10,6 +10,7 @@ Status: early. Works on macOS (training) and in browsers (runtime). The repo has
 | `trainer/` | Python CLI. `wakeword train "prometheus" --out prometheus.wakeword` downloads data once, trains locally, writes a bundle. |
 | `runtime-web/` | TypeScript runtime (onnxruntime-web). Loads a bundle, listens to the mic, fires a `detect` event. |
 | `test-page/` | Tuning page: live score graph, threshold slider, WAV upload, and a viewer for the training clips. |
+| `runtime-native/` | Rust runtime (ort + cpal): same bundles, same scores as the web runtime, plus an `ohren-listen` CLI for background listening. |
 | `bundles/` | Trained bundles. The only contract between trainer and runtime is the manifest inside ([docs/bundle-spec.md](docs/bundle-spec.md)). |
 
 ## Try it
