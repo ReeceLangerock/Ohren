@@ -56,7 +56,13 @@ Stop a stray dev server with `pkill -f "vite --port 5173"`. A stale one on 5173 
 - Augmentation already applies room impulse responses (MIT RIRs), AudioSet background noise, colored noise, EQ, pitch shift and distortion to every training clip. Do not add reverb to recordings.
 - Possible extra data (not used, licenses unverified): SLR28 (RIRs), MUSAN (noise), added through `rir_paths` / `background_paths`. Common Voice / LibriSpeech would be for an M4 false-trigger test, not training.
 
-## Optional next task: real recordings and M4
+## NEXT: Ohren as a local always-on service (owner goals, 2026-10-19)
+- Run **in the background on the Mac** (not just a browser tab): a local service doing wake word, plus **TTS and STT**. Shell is open: Tauri, Electron, Capacitor, or gpui.
+- **Open source** Ohren as an easier way to create, train and save wake word models (a friendlier openWakeWord). The owner's own app will use the "prometheus" bundle.
+- Later: **Android only** (no iOS) and maybe **ESP32**; on ESP32 the TTS/STT is offloaded to another machine.
+- Constraints to carry in: the bundle manifest stays the only contract; the runtime must not import trainer code. Background listening needs a native process (a browser page loses the mic with the tab). Phone and ESP32 are unresolved design questions, see the prompt the owner was given in the session of 2026-10-19 and verify its claims before relying on them.
+
+## Optional later: real recordings and M4
 Only if the model proves weak in daily use.
 1. **Recorder page** in `test-page/` reusing `startMic` (so recordings match the detection capture path). Auto-trim silence, playback, delete. A Vite plugin writes 16 kHz 16-bit WAVs to `recordings/<phrase_slug>/pos|neg/NNNN.wav` (add `recordings/` to `.gitignore`, it is personal voice data).
 2. **`wakeword train --recordings DIR`**: copy `pos` clips into `model/<phrase>/positive_train` repeated about 20 to 50 times under unique names, `neg` into `negative_train`; hold out about 30% (by filename) as the test set and list them in `report.json`. Plan for 60 or more positives, or the held-out set is too small to mean anything.

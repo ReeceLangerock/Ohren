@@ -19,3 +19,4 @@ Record results per browser/date below.
 
 | Date | Browser/OS | Result | Notes |
 |------|-----------|--------|-------|
+| 2026-10-19 | Chrome / macOS | Pass (owner, informal) | "prometheus" at threshold 0.75, normal and slow speech. Full checklist not walked. Safari and Firefox not tried. |
