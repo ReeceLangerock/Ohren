@@ -1,0 +1,3 @@
+[submodule "trainer/third_party/openWakeWord"]
+	path = trainer/third_party/openWakeWord
+	url = https://github.com/dscripka/openWakeWord

@@ -1,0 +1,27 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  runtime-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+        working-directory: runtime-web
+      - run: npx playwright install --with-deps chromium
+        working-directory: runtime-web
+      - run: npm run lint && npm run typecheck && npm test
+        working-directory: runtime-web
+      - run: npm ci && npm run e2e
+        working-directory: test-page
+  trainer:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: trainer } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install ruff pytest pyyaml onnxruntime
+      - run: ruff check .
+      - run: pytest -q

@@ -1,0 +1,23 @@
+# Training dependencies, verified on macOS arm64 + Python 3.11 (see setup.sh). Linux/WSL2 + NVIDIA also expected to work.
+# The CLI, preflight and bundler alone only need pyyaml and onnxruntime (pyproject.toml).
+pyyaml
+onnxruntime
+onnx
+torch==2.8.0           # torchaudio 2.9+ needs torchcodec to load audio
+torchaudio==2.8.0
+torchinfo
+torchmetrics
+speechbrain
+torch-audiomentations
+audiomentations==0.33.0
+acoustics
+mutagen
+pronouncing
+deep-phonemizer
+scipy==1.14.1        # acoustics needs scipy.special.sph_harm, removed in scipy 1.15
+datasets==3.6.0      # 4.x needs torchcodec for audio decoding
+soundfile
+librosa
+tqdm
+piper-sample-generator @ git+https://github.com/rhasspy/piper-sample-generator@v3.2.0
+./third_party/openWakeWord

@@ -1,0 +1,18 @@
+[project]
+name = "wakeword-trainer"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["pyyaml", "onnxruntime"]
+
+[project.scripts]
+wakeword = "wakeword_trainer.cli:main"
+
+[tool.setuptools]
+packages = ["wakeword_trainer"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ["third_party"]
