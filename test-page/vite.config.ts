@@ -8,12 +8,22 @@ import { defineConfig } from "vite";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BUNDLES = join(ROOT, "bundles");
-const WAKEWORD = join(ROOT, "trainer", ".venv", "bin", "wakeword");
+const WAKEWORD = process.env.OHREN_WAKEWORD ?? join(ROOT, "trainer", ".venv", "bin", "wakeword"); // env override is for testing the UI without a real run
 const CLIPS = join(homedir(), ".cache", "wakeword-toolkit", "model");
-const PHRASE = /^[a-z0-9]+( [a-z0-9]+)*$/i;
+const PHRASE = /^[a-z']+( [a-z']+)*$/i; // same rule as trainer/wakeword_trainer/preflight.py
 const LOG_LIMIT = 20_000;
 
-type Job = { phrase: string; log: string; step?: string; running: boolean; code?: number; bundle?: string };
+type Job = {
+	phrase: string;
+	log: string;
+	step?: string;
+	stepAt?: number;
+	running: boolean;
+	cancelled?: boolean;
+	code?: number;
+	bundle?: string;
+	result?: Record<string, number>;
+};
 let job: Job | undefined;
 let child: ChildProcess | undefined;
 
@@ -29,15 +39,26 @@ async function readJson(req: IncomingMessage) {
 	return JSON.parse(raw || "{}") as { phrase?: string; threshold?: number };
 }
 
+const preflight = (phrase: string) =>
+	new Promise<{ ok: boolean; output: string }>((done) =>
+		execFile(WAKEWORD, ["preflight", phrase], (e, out, err) => done({ ok: !e, output: (out + err).trim() })),
+	);
+
 function startTraining(phrase: string, threshold: number): Job {
 	const slug = phrase.toLowerCase().replace(/ /g, "_");
 	const j: Job = { phrase, log: "", running: true, bundle: `/${slug}.wakeword` };
 	const append = (d: Buffer) => {
-		for (const m of String(d).matchAll(/##STEP (\w+)/g)) j.step = m[1];
+		for (const m of String(d).matchAll(/##STEP (\w+)/g)) {
+			j.step = m[1];
+			j.stepAt = Date.now();
+		}
+		for (const m of String(d).matchAll(/##RESULT (\{.*\})/g)) j.result = JSON.parse(m[1]);
 		j.log = (j.log + d).slice(-LOG_LIMIT);
 	};
+	// detached: the trainer starts its own subprocesses, and cancelling has to stop the whole group.
 	child = spawn(WAKEWORD, ["train", phrase, "--out", join(BUNDLES, `${slug}.wakeword`), "--threshold", String(threshold)], {
 		env: { ...process.env, PYTHONUNBUFFERED: "1" },
+		detached: true,
 	});
 	child.stdout?.on("data", append);
 	child.stderr?.on("data", append);
@@ -64,17 +85,23 @@ const trainer = {
 				if (req.method !== "POST") return send(res, 404, { error: "not found" });
 				// A cross-site page can't send JSON without a CORS preflight, which this server never answers.
 				if (!req.headers["content-type"]?.startsWith("application/json")) return send(res, 415, { error: "JSON only" });
+				if (route === "POST /cancel") {
+					if (!job?.running || !child?.pid) return send(res, 409, { error: "Nothing is training." });
+					job.cancelled = true;
+					process.kill(-child.pid, "SIGTERM");
+					return send(res, 200, job);
+				}
 				const { phrase = "", threshold = 0.5 } = await readJson(req);
-				if (!PHRASE.test(phrase.trim()) || phrase.length > 40) return send(res, 400, { error: "Use letters, numbers and spaces only (40 characters max)." });
+				if (!PHRASE.test(phrase.trim()) || phrase.length > 40) return send(res, 400, { error: "Use letters, apostrophes and spaces only (40 characters max)." });
 				if (!existsSync(WAKEWORD)) return send(res, 500, { error: "Trainer is not set up. Run trainer/setup.sh first." });
 				const p = phrase.trim().replace(/\s+/g, " ");
-				if (route === "POST /preflight") {
-					return execFile(WAKEWORD, ["preflight", p], (_e, out, err) => send(res, 200, { output: (out + err).trim() }));
-				}
+				if (route === "POST /preflight") return send(res, 200, { output: (await preflight(p)).output });
 				if (route === "POST /train") {
 					if (job?.running) return send(res, 409, { error: `Already training "${job.phrase}".` });
 					if (existsSync(join(BUNDLES, `${p.toLowerCase().replace(/ /g, "_")}.wakeword`))) return send(res, 409, { error: "A bundle with that name already exists. Delete or rename it first." });
 					if (!(threshold >= 0.05 && threshold <= 0.99)) return send(res, 400, { error: "Threshold must be between 0.05 and 0.99." });
+					const check = await preflight(p); // rejects phrases the trainer would refuse, before any work starts
+					if (!check.ok) return send(res, 400, { error: check.output.replace(/^error: /, "") });
 					job = startTraining(p, threshold);
 					return send(res, 200, job);
 				}

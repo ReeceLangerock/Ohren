@@ -14,7 +14,7 @@ def gpu_available() -> bool:
     return torch.cuda.is_available() or torch.backends.mps.is_available()
 
 
-def check_environment(platform: str | None = None, gpu: bool | None = None, free_gb: float | None = None, need_gb: int = 15):
+def check_environment(platform: str | None = None, gpu: bool | None = None, free_gb: float | None = None, need_gb: int = 15, path="."):
     platform = platform or sys.platform
     if platform.startswith("win"):
         raise TrainError(
@@ -29,6 +29,6 @@ def check_environment(platform: str | None = None, gpu: bool | None = None, free
             "Use a machine with a GPU, or a GPU Colab runtime."
         )
     if free_gb is None:
-        free_gb = shutil.disk_usage(".").free / 1e9
+        free_gb = shutil.disk_usage(path).free / 1e9
     if free_gb < need_gb:
         raise TrainError(f"Not enough disk space: {free_gb:.0f} GB free, about {need_gb} GB needed for datasets and clips.")

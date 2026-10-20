@@ -24,3 +24,7 @@ def test_mac_with_gpu_is_ok():
 
 def test_ok():
     check_environment(platform="linux", gpu=True, free_gb=100)
+
+
+def test_disk_is_checked_at_the_given_path(tmp_path):
+    check_environment(platform="linux", gpu=True, need_gb=0, path=tmp_path)
