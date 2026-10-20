@@ -21,8 +21,12 @@
 		<input id="trainThr" type="number" min="0.05" max="0.99" step="0.05" value="0.5">
 		<button id="train" class="primary">Train</button>
 	</div>
-	<p id="trainMsg" class="help">Trains on this machine from synthetic speech: about 25 to 40 minutes, and 35 GB of disk the first time. A distinctive phrase of three or more syllables works best. First run needs <code>trainer/setup.sh</code>.</p>
-	<pre id="log" hidden></pre>
+	<p id="trainMsg" class="help">Trains on this machine from synthetic speech, no recordings needed. A distinctive phrase of three or more syllables works best. First run needs <code>trainer/setup.sh</code>.</p>
+	<ol id="steps" class="steps"></ol>
+	<details id="logBox" hidden>
+		<summary>Show log</summary>
+		<pre id="log"></pre>
+	</details>
 </section>
 
 <section class="card">

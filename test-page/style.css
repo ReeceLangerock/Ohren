@@ -100,3 +100,20 @@ input[type=number] { width: 5em; padding: 6px 10px; border: 1px solid var(--bord
 .mark.ok { color: #2e9e5b; }
 .mark.bad { color: var(--danger); }
 #synthList { max-height: 280px; overflow-y: auto; margin-top: 8px; }
+
+.steps { list-style: none; margin: 16px 0 0; padding: 0; counter-reset: step; }
+.steps li { position: relative; display: flex; flex-direction: column; padding: 8px 0 8px 40px; counter-increment: step; }
+.steps li::before {
+	content: counter(step);
+	position: absolute; left: 0; top: 8px;
+	width: 26px; height: 26px; border-radius: 50%;
+	display: grid; place-items: center;
+	border: 1px solid var(--border); color: var(--muted); font-size: 0.8rem;
+}
+.steps li span { color: var(--muted); font-size: 0.85rem; }
+.steps li.active::before { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.steps li.done::before { content: "✓"; background: #2e9e5b; border-color: #2e9e5b; color: #fff; }
+.steps li.failed::before { content: "!"; background: var(--danger); border-color: var(--danger); color: #fff; }
+.steps li.pending { opacity: 0.6; }
+#logBox { margin-top: 12px; }
+#logBox summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; }

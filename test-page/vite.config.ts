@@ -13,7 +13,7 @@ const CLIPS = join(homedir(), ".cache", "wakeword-toolkit", "model");
 const PHRASE = /^[a-z0-9]+( [a-z0-9]+)*$/i;
 const LOG_LIMIT = 20_000;
 
-type Job = { phrase: string; log: string; running: boolean; code?: number; bundle?: string };
+type Job = { phrase: string; log: string; step?: string; running: boolean; code?: number; bundle?: string };
 let job: Job | undefined;
 let child: ChildProcess | undefined;
 
@@ -32,8 +32,13 @@ async function readJson(req: IncomingMessage) {
 function startTraining(phrase: string, threshold: number): Job {
 	const slug = phrase.toLowerCase().replace(/ /g, "_");
 	const j: Job = { phrase, log: "", running: true, bundle: `/${slug}.wakeword` };
-	const append = (d: Buffer) => (j.log = (j.log + d).slice(-LOG_LIMIT));
-	child = spawn(WAKEWORD, ["train", phrase, "--out", join(BUNDLES, `${slug}.wakeword`), "--threshold", String(threshold)]);
+	const append = (d: Buffer) => {
+		for (const m of String(d).matchAll(/##STEP (\w+)/g)) j.step = m[1];
+		j.log = (j.log + d).slice(-LOG_LIMIT);
+	};
+	child = spawn(WAKEWORD, ["train", phrase, "--out", join(BUNDLES, `${slug}.wakeword`), "--threshold", String(threshold)], {
+		env: { ...process.env, PYTHONUNBUFFERED: "1" },
+	});
 	child.stdout?.on("data", append);
 	child.stderr?.on("data", append);
 	child.on("close", (code) => {
