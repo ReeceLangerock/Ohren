@@ -20,7 +20,6 @@ cd runtime-web && npm test            # vitest, Node + headless Chromium (needs:
 cd runtime-web && npm run lint && npm run typecheck
 cd test-page && npm run e2e           # real Chromium, fake mic playing fixtures
 cd test-page && npm run dev           # tuning page: http://localhost:5173/?bundle=/prometheus.wakeword
-                                      # listen to training clips: http://localhost:5173/clips.html (open via http, not file://)
 cd trainer && .venv/bin/pytest -q && .venv/bin/ruff check .   # pytest/ruff: uv pip install -p .venv/bin/python pytest ruff
 trainer/.venv/bin/wakeword train "prometheus" --out bundles/prometheus.wakeword --threshold 0.75   # see docs/training.md
 ```
@@ -28,10 +27,10 @@ Stop a stray dev server with `pkill -f "vite --port 5173"`. A stale one on 5173 
 
 ## Layout
 - `runtime-web/src/`: `wakeword.ts` (API), `pipeline.ts` (mel, embedding, classifier streaming), `detector.ts` (patience and cooldown), `bundle.ts`/`manifest.ts` (zip and validation), `mic.ts` + `worklet.ts` (AudioWorklet capture and resampler, worklet is a string so tests run the exact code), `testdata.ts` (Vite-inlined fixtures so one test file runs in Node and browser).
-- `test-page/`: `main.ts`, `index.html`, `e2e.mjs`, `clips.html` (dev-only clip listener, served by a small plugin in `vite.config.ts` at `/clip-files`, limited to `~/.cache/wakeword-toolkit/model`). Serves `bundles/` at `/`.
+- `test-page/`: `main.ts`, `index.html`, `style.css`, `e2e.mjs`. Serves `bundles/` at `/`.
 - `trainer/wakeword_trainer/`: `cli.py`, `train.py` (orchestration), `preflight.py`, `env.py`, `bundle.py` (the only writer of the manifest), `fetch_audio.py`, `piper_shim.py`, `run_upstream.py`, `pretrained.py`.
 - `fixtures/make.py` regenerates WAV fixtures with macOS `say` (macOS only).
-- `bundles/`: `hey_jarvis.wakeword` (pretrained, used by tests), `hey_rocky.wakeword` and `prometheus.wakeword` (trained locally, non-commercial, `prometheus` has threshold 0.75). `*.report.json` is git-ignored.
+- `bundles/`: `hey_jarvis.wakeword` (pretrained, used by tests), `prometheus.wakeword` (trained locally, non-commercial, `prometheus` has threshold 0.75). `*.report.json` is git-ignored.
 - Bundle spec: `docs/bundle-spec.md`. Classifier window `embeddingWindow` (N=16 embeddings = 1.28 s of audio) is in the manifest.
 
 ## Environment notes
@@ -41,13 +40,13 @@ Stop a stray dev server with `pkill -f "vite --port 5173"`. A stale one on 5173 
 - macOS `say` voices differ per machine; fixtures were regenerated with Samantha, Daniel, Karen, Moira.
 
 ## Model quality (defaults: 10,000 clips, 50,000 steps, about 25 min)
-| | prometheus | hey rocky |
-|---|---|---|
-| Upstream validation recall | 48% | 60% |
-| accuracy | 74% | 80% |
-| false triggers per hour | 0.27 | 1.33 |
+| | prometheus |
+|---|---|
+| Upstream validation recall | 48% |
+| accuracy | 74% |
+| false triggers per hour | 0.27 |
 
-- **"hey rocky"** fired on "rocky" alone and missed slow speech. "prometheus" (four syllables, distinctive) fixed both in the owner's live test. Threshold 0.5 was too forgiving; 0.75 chosen by ear. Recall on synthetic test clips is low, but the live result is good.
+- **"prometheus"** (four syllables, distinctive) worked well in the owner's live test. Threshold 0.5 was too forgiving; 0.75 chosen by ear. Recall on synthetic test clips is low, but the live result is good.
 
 ## Verified upstream facts (read from source; useful if quality needs work)
 - **Window length is not a setting.** N=16 comes from `total_length` (median clip + 750 ms, minimum 32,000 samples = 2 s), which upstream recomputes unconditionally (`train.py:754`). A larger window (about 44,000 samples gives N=24, 1.92 s) needs an override in `run_upstream.py`. The runtime already reads N from the model. Owner chose not to change it.

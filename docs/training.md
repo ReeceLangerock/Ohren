@@ -16,7 +16,6 @@ Output: the `.wakeword` bundle plus `prometheus.report.json` (manifest, settings
 
 ## Quality (defaults, synthetic training data only)
 - "prometheus": upstream validation recall 48%, accuracy 74%, 0.27 false triggers per hour (target 0.2). Works well live, including slow speech; threshold 0.75 chosen by ear with the test page.
-- "hey rocky" (first run): recall 60%, accuracy 80%, 1.33 false triggers per hour. Fired on "rocky" alone and missed slow speech, so a short phrase with a weak first word is a poor choice.
 - Use `--threshold` to write the tuned value into the bundle.
 - Real-voice evaluation (M4) has not been done.
 

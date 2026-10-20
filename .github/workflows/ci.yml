@@ -25,3 +25,9 @@ jobs:
       - run: pip install ruff pytest pyyaml onnxruntime
       - run: ruff check .
       - run: pytest -q
+  runtime-native:
+    runs-on: macos-latest # cpal needs no extra system packages here (Linux would need libasound2-dev)
+    defaults: { run: { working-directory: runtime-native } }
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo test

@@ -3,43 +3,69 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wake Word Tuner</title>
-<style>
-	body { font: 16px system-ui, sans-serif; margin: 0 auto; max-width: 720px; padding: 16px; }
-	canvas { width: 100%; height: 200px; border: 1px solid #8884; border-radius: 6px; display: block; }
-	.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
-	#status { min-height: 1.4em; }
-	#status.err { color: #c0392b; }
-	input[type=range] { flex: 1; min-width: 160px; }
-	output { font-variant-numeric: tabular-nums; }
-</style>
+<title>Ohren</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<h1>Wake Word Tuner</h1>
-<div class="row">
-	<label>Bundle <input id="bundle" value="/hey_jarvis.wakeword" size="28"></label>
-	<button id="load">Load</button>
-</div>
-<div id="status">Load a bundle to begin.</div>
+<h1>Ohren</h1>
+<nav>Train a wake word, test it on synthetic clips, then tune it live.</nav>
 
-<canvas id="graph" width="1440" height="400"></canvas>
+<section class="card">
+	<h2>1. Train a wake word</h2>
+	<div class="row">
+		<input id="phrase" type="text" class="grow" placeholder="Your phrase, e.g. prometheus" maxlength="40" aria-label="Wake phrase">
+		<button id="check">Check phrase</button>
+	</div>
+	<div class="row">
+		<label for="trainThr">Starting threshold</label>
+		<input id="trainThr" type="number" min="0.05" max="0.99" step="0.05" value="0.5">
+		<button id="train" class="primary">Train</button>
+	</div>
+	<p id="trainMsg" class="help">Trains on this machine from synthetic speech: about 25 to 40 minutes, and 35 GB of disk the first time. A distinctive phrase of three or more syllables works best. First run needs <code>trainer/setup.sh</code>.</p>
+	<pre id="log" hidden></pre>
+</section>
 
-<div class="row">
-	<label for="thr">Threshold</label>
-	<input id="thr" type="range" min="0.05" max="0.99" step="0.01" value="0.5" disabled>
-	<output id="thrOut">0.50</output>
-</div>
-<div class="row">
-	<button id="start" disabled>Start listening</button>
-	<button id="stop" disabled>Stop</button>
-	<span>Detections: <b id="hits">0</b></span>
-	<button id="false" disabled>False trigger (<span id="falses">0</span>)</button>
-</div>
-<div class="row">
-	<label>Test a WAV file <input id="file" type="file" accept="audio/*" disabled></label>
-</div>
-<div id="fileOut"></div>
-<div class="row"><button id="export" disabled>Export manifest with this threshold</button></div>
+<section class="card">
+	<h2>2. Load and tune</h2>
+	<div class="row">
+		<select id="bundle" class="grow" aria-label="Bundle"></select>
+		<button id="load" class="primary">Load</button>
+	</div>
+	<div id="status" class="row">Load a bundle to begin.</div>
+	<canvas id="graph" width="1440" height="400"></canvas>
+	<div class="row">
+		<label for="thr">Threshold</label>
+		<input id="thr" class="grow" type="range" min="0.05" max="0.99" step="0.01" value="0.5" disabled>
+		<output id="thrOut">0.50</output>
+	</div>
+	<div class="row">
+		<button id="start" class="primary" disabled>Start listening</button>
+		<button id="stop" disabled>Stop</button>
+		<span>Detections: <b id="hits">0</b></span>
+		<button id="false" disabled>False trigger (<span id="falses">0</span>)</button>
+	</div>
+	<p class="help">Say the phrase: the line is the live score, the dashed line is the threshold. Raise it if normal talk triggers, lower it if your phrase is missed.</p>
+</section>
+
+<section class="card">
+	<h2>3. Test it</h2>
+	<div class="row">
+		<button id="synth" disabled>Run synthetic test clips</button>
+		<label>or a WAV file <input id="file" type="file" accept="audio/*" disabled></label>
+	</div>
+	<p class="help">Synthetic clips are the generated positive and negative recordings the trainer set aside. Drag the threshold and the results update.</p>
+	<div id="synthSummary"></div>
+	<div id="synthList"></div>
+	<div id="fileOut"></div>
+</section>
+
+<section class="card">
+	<h2>4. Save the threshold</h2>
+	<div class="row">
+		<button id="export" disabled>Export manifest with this threshold</button>
+	</div>
+	<p class="help">Your trained bundle is already in <code>bundles/</code>. Copy the exported <code>threshold</code> into its <code>manifest.json</code> to keep your tuning.</p>
+</section>
 
 <script type="module" src="./main.ts"></script>
 </body>

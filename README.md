@@ -9,7 +9,7 @@ Status: early. Works on macOS (training) and in browsers (runtime). Code is MIT 
 |---|---|
 | `trainer/` | Python CLI. `wakeword train "prometheus" --out prometheus.wakeword` downloads data once, trains locally, writes a bundle. |
 | `runtime-web/` | TypeScript runtime (onnxruntime-web). Loads a bundle, listens to the mic, fires a `detect` event. |
-| `test-page/` | Tuning page: live score graph, threshold slider, WAV upload, and a viewer for the training clips. |
+| `test-page/` | The UI: train a wake word from a phrase, run synthetic test clips, tune the threshold live with the mic, WAV upload. |
 | `runtime-native/` | Rust runtime (ort + cpal): same bundles, same scores as the web runtime, plus an `ohren-listen` CLI for background listening. |
 | `bundles/` | Trained bundles. The only contract between trainer and runtime is the manifest inside ([docs/bundle-spec.md](docs/bundle-spec.md)). |
 
@@ -30,7 +30,7 @@ More: [quickstart](docs/quickstart.md).
 trainer/setup.sh                                                     # once
 trainer/.venv/bin/wakeword train "your phrase" --out your.wakeword --threshold 0.7
 ```
-Needs about 35 GB of disk for cached datasets; a first model takes 25 to 40 minutes on an M-series Mac. Pick a distinctive phrase of three or more syllables ("prometheus" worked, "hey rocky" did not). Details and measured quality: [docs/training.md](docs/training.md).
+Needs about 35 GB of disk for cached datasets; a first model takes 25 to 40 minutes on an M-series Mac. Pick a distinctive phrase of three or more syllables ("prometheus" worked well). Details and measured quality: [docs/training.md](docs/training.md).
 
 ## Docs
 [docs/HANDOFF.md](docs/HANDOFF.md) (current state, read first) · [training](docs/training.md) · [bundle spec](docs/bundle-spec.md) · [upstream notes](docs/upstream-notes.md) · [manual test checklist](docs/manual-test-checklist.md) · [licenses](LICENSES.md)

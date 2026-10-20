@@ -9,7 +9,7 @@ Status: personal use only until the audit below is done. Not legal advice.
 | openWakeWord pretrained models (`hey_jarvis` etc.) | CC BY-NC-SA 4.0 | **Non-commercial, share-alike.** Used for `bundles/hey_jarvis.wakeword` and test fixtures only. |
 | `melspectrogram.onnx`, `embedding_model.onnx` | Unconfirmed | Embedding is derived from Google `speech_embedding` (Apache 2.0). Confirm the license of upstream's re-implemented files before any commercial use. |
 | Upstream training data (negative features, RIRs, background audio) | Mixed / unknown | README attributes the NC license to this data. Audit each dataset before commercial use. |
-| `bundles/hey_rocky.wakeword`, `bundles/prometheus.wakeword` | Non-commercial | Trained locally on the upstream data above, so they inherit its terms. Personal use only. |
+| `bundles/prometheus.wakeword` | Non-commercial | Trained locally on the upstream data above, so they inherit its terms. Personal use only. |
 | onnxruntime-web | MIT | |
 | fflate | MIT | |
 | Test fixtures | Generated with macOS `say` | Voice licensing differs per vendor; do not redistribute beyond personal testing without checking Apple's terms. |
