@@ -26,6 +26,11 @@ PIPER_MODEL = "https://github.com/rhasspy/piper-sample-generator/releases/downlo
 LICENSE = "non-commercial (trained with upstream openWakeWord data, CC BY-NC-SA 4.0)"
 
 
+def step(name: str) -> None:
+    """Stage marker; the UI reads these lines to show progress. Keep names in sync with test-page/train.ts."""
+    print(f"##STEP {name}", flush=True)
+
+
 def slug(phrase: str) -> str:
     return re.sub(r"\s+", "_", phrase.strip().lower())
 
@@ -102,27 +107,31 @@ def ensure_data(work: Path) -> None:
 
 
 def train(phrase: str, out: Path, work: Path, user_config: Path | None = None, threshold: float = 0.5) -> dict:
+    step("check")
     for w in check_phrase(phrase):
         print(f"warning ({w.level}): {w.message}")
     check_environment()
     if not (UPSTREAM / "openwakeword" / "train.py").exists():
         raise TrainError("Upstream openWakeWord is missing. Run: git submodule update --init")
     work.mkdir(parents=True, exist_ok=True)
+    step("data")
     ensure_data(work)
     base = yaml.safe_load((UPSTREAM / "examples" / "custom_model.yml").read_text())
     cfg = make_config(phrase, work, base, user_config)
     cfg_path = work / "config.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
     model = Path(cfg["output_dir"]) / f"{cfg['model_name']}.onnx"
-    for step in ("--generate_clips", "--augment_clips", "--train_model"):
+    for flag, name in (("--generate_clips", "generate"), ("--augment_clips", "augment"), ("--train_model", "train")):
+        step(name)
         # Upstream's --convert_to_tflite has `default="False"` (a truthy string), so it always tries TFLite after exporting
         # the ONNX and fails without tensorflow. We only need the ONNX, so a failure with the ONNX present is fine.
         run(
             sys.executable, Path(__file__).with_name("run_upstream.py"), UPSTREAM / "openwakeword" / "train.py",
-            "--training_config", cfg_path, step, ok_if_exists=model if step == "--train_model" else None,
+            "--training_config", cfg_path, flag, ok_if_exists=model if flag == "--train_model" else None,
         )
     if not model.exists():
         raise TrainError(f"Training finished but {model} was not produced; see output above.")
+    step("package")
     import onnxruntime as ort
 
     window = ort.InferenceSession(str(model)).get_inputs()[0].shape[1]
